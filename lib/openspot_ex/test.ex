@@ -14,28 +14,20 @@ defmodule OpenspotEx.Test do
     {:ok, jwt} = authenticate()
 
     IO.puts("JWT: #{jwt}")
-    url = "ws://openspot.local/" <> jwt
+    url = "ws://" <> @hostname <> "/" <> jwt
 
     WebSockex.start_link(url, __MODULE__, state,
       extra_headers: [{"Sec-WebSocket-Protocol", "openspot2"}]
     )
   end
 
-  def init() do
-    {:ok, jwt} = authenticate()
-    url = "ws://openspot.local/" <> jwt
-
-    IO.puts("URL: #{url}")
-
-    {:ok, %{jwt: jwt}}
-  end
-
   @impl true
   def handle_frame({:text, msg}, state) do
     Logger.debug(msg)
 
-    json = Jason.decode!(msg)
-    dispatch_msg(json)
+    msg
+    |> Jason.decode!
+    |> dispatch_msg
 
     {:ok, state}
   end
